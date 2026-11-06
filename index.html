@@ -56,43 +56,37 @@
         return;
       }
 
-      const byCategory = {};
+      const list = document.createElement("div");
+      list.className = "links";
+
       links.forEach((link) => {
-        const cat = link.category || "Geral";
-        if (!byCategory[cat]) byCategory[cat] = [];
-        byCategory[cat].push(link);
-      });
+        const a = document.createElement("a");
+        a.className = "link-btn";
+        a.href = link.url;
+        a.target = "_blank";
+        a.rel = "sponsored noopener noreferrer";
 
-      Object.keys(byCategory).forEach((cat) => {
-        const heading = document.createElement("div");
-        heading.className = "category";
-        heading.textContent = cat;
-        container.appendChild(heading);
-
-        const list = document.createElement("div");
-        list.className = "links";
-
-        byCategory[cat].forEach((link) => {
-          const a = document.createElement("a");
-          a.className = "link-btn";
-          a.href = link.url;
-          a.target = "_blank";
-          a.rel = "sponsored noopener noreferrer";
-
+        if (link.image) {
+          const thumb = document.createElement("img");
+          thumb.className = "link-thumb";
+          thumb.src = link.image;
+          thumb.alt = "";
+          a.appendChild(thumb);
+        } else {
           const icon = document.createElement("span");
           icon.className = "link-icon";
           icon.textContent = link.icon || "🔗";
-
-          const title = document.createElement("span");
-          title.textContent = link.title;
-
           a.appendChild(icon);
-          a.appendChild(title);
-          list.appendChild(a);
-        });
+        }
 
-        container.appendChild(list);
+        const title = document.createElement("span");
+        title.textContent = link.title;
+        a.appendChild(title);
+
+        list.appendChild(a);
       });
+
+      container.appendChild(list);
     }
 
     loadData();
