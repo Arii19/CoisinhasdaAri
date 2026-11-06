@@ -1,16 +1,16 @@
 {
   "profile": {
-    "name": "Seu Nome",
-    "bio": "Meus links e recomendações",
-    "avatar": ""
+    "name": "Achadinhos da Ari",
+    "bio": "Aqui você encontra os melhores produtos e ofertas",
+    "avatar": "images/avatar.jpg"
   },
   "links": [
     {
-      "id": "exemplo-1",
-      "title": "Produto exemplo (edite ou apague)",
-      "url": "https://exemplo.com",
-      "category": "Geral",
-      "icon": "🔗"
+      "id": "tigela-natalina",
+      "title": "Tigela Natalina",
+      "url": "https://s.shopee.com.br/5q9X9DvgSW",
+      "category": "Natal",
+      "icon": "🎄"
     }
   ]
 }
