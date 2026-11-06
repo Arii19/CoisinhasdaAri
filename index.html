@@ -56,37 +56,82 @@
         return;
       }
 
-      const list = document.createElement("div");
-      list.className = "links";
-
+      const byCategory = {};
       links.forEach((link) => {
-        const a = document.createElement("a");
-        a.className = "link-btn";
-        a.href = link.url;
-        a.target = "_blank";
-        a.rel = "sponsored noopener noreferrer";
-
-        if (link.image) {
-          const thumb = document.createElement("img");
-          thumb.className = "link-thumb";
-          thumb.src = link.image;
-          thumb.alt = "";
-          a.appendChild(thumb);
-        } else {
-          const icon = document.createElement("span");
-          icon.className = "link-icon";
-          icon.textContent = link.icon || "🔗";
-          a.appendChild(icon);
-        }
-
-        const title = document.createElement("span");
-        title.textContent = link.title;
-        a.appendChild(title);
-
-        list.appendChild(a);
+        const cat = link.category || "Geral";
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(link);
       });
 
-      container.appendChild(list);
+      const categories = Object.keys(byCategory);
+      const singleCategory = categories.length === 1;
+
+      categories.forEach((cat) => {
+        const section = document.createElement("div");
+        section.className = "category-section";
+
+        const list = document.createElement("div");
+        list.className = "links";
+
+        byCategory[cat].forEach((link) => {
+          const a = document.createElement("a");
+          a.className = "link-btn";
+          a.href = link.url;
+          a.target = "_blank";
+          a.rel = "sponsored noopener noreferrer";
+
+          if (link.image) {
+            const thumb = document.createElement("img");
+            thumb.className = "link-thumb";
+            thumb.src = link.image;
+            thumb.alt = "";
+            a.appendChild(thumb);
+          } else {
+            const icon = document.createElement("span");
+            icon.className = "link-icon";
+            icon.textContent = link.icon || "🔗";
+            a.appendChild(icon);
+          }
+
+          const title = document.createElement("span");
+          title.textContent = link.title;
+          a.appendChild(title);
+
+          list.appendChild(a);
+        });
+
+        if (singleCategory) {
+          section.appendChild(list);
+        } else {
+          const header = document.createElement("button");
+          header.type = "button";
+          header.className = "category-header";
+          header.setAttribute("aria-expanded", "false");
+
+          const name = document.createElement("span");
+          name.textContent = cat;
+          const chevron = document.createElement("span");
+          chevron.className = "chevron";
+          chevron.textContent = "›";
+
+          header.appendChild(name);
+          header.appendChild(chevron);
+
+          list.classList.add("collapsed");
+
+          header.addEventListener("click", () => {
+            const isOpen = list.classList.toggle("open");
+            list.classList.toggle("collapsed", !isOpen);
+            header.setAttribute("aria-expanded", String(isOpen));
+            header.classList.toggle("open", isOpen);
+          });
+
+          section.appendChild(header);
+          section.appendChild(list);
+        }
+
+        container.appendChild(section);
+      });
     }
 
     loadData();
