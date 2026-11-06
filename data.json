@@ -1,0 +1,16 @@
+{
+  "profile": {
+    "name": "Seu Nome",
+    "bio": "Meus links e recomendações",
+    "avatar": ""
+  },
+  "links": [
+    {
+      "id": "exemplo-1",
+      "title": "Produto exemplo (edite ou apague)",
+      "url": "https://exemplo.com",
+      "category": "Geral",
+      "icon": "🔗"
+    }
+  ]
+}

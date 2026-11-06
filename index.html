@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meus Links</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="profile" id="profile">
+      <div class="avatar" id="avatar"></div>
+      <h1 class="name" id="name">Carregando...</h1>
+      <p class="bio" id="bio"></p>
+    </div>
+
+    <div id="links-container"></div>
+
+    <p class="disclosure">
+      Este site pode conter links de afiliado. Isso significa que, ao comprar
+      por meio deles, eu posso receber uma pequena comissão, sem nenhum
+      custo adicional para você.
+    </p>
+  </div>
+
+  <script>
+    async function loadData() {
+      try {
+        const res = await fetch("data.json", { cache: "no-store" });
+        const data = await res.json();
+        renderProfile(data.profile || {});
+        renderLinks(data.links || []);
+      } catch (err) {
+        document.getElementById("name").textContent = "Erro ao carregar links";
+        console.error(err);
+      }
+    }
+
+    function renderProfile(profile) {
+      document.getElementById("name").textContent = profile.name || "Meus Links";
+      document.getElementById("bio").textContent = profile.bio || "";
+      const avatar = document.getElementById("avatar");
+      if (profile.avatar) {
+        avatar.style.backgroundImage = `url(${profile.avatar})`;
+        avatar.style.backgroundSize = "cover";
+        avatar.style.backgroundPosition = "center";
+      }
+    }
+
+    function renderLinks(links) {
+      const container = document.getElementById("links-container");
+      container.innerHTML = "";
+
+      if (!links.length) {
+        container.innerHTML = '<p class="empty">Nenhum link cadastrado ainda.</p>';
+        return;
+      }
+
+      const byCategory = {};
+      links.forEach((link) => {
+        const cat = link.category || "Geral";
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(link);
+      });
+
+      Object.keys(byCategory).forEach((cat) => {
+        const heading = document.createElement("div");
+        heading.className = "category";
+        heading.textContent = cat;
+        container.appendChild(heading);
+
+        const list = document.createElement("div");
+        list.className = "links";
+
+        byCategory[cat].forEach((link) => {
+          const a = document.createElement("a");
+          a.className = "link-btn";
+          a.href = link.url;
+          a.target = "_blank";
+          a.rel = "sponsored noopener noreferrer";
+
+          const icon = document.createElement("span");
+          icon.className = "link-icon";
+          icon.textContent = link.icon || "🔗";
+
+          const title = document.createElement("span");
+          title.textContent = link.title;
+
+          a.appendChild(icon);
+          a.appendChild(title);
+          list.appendChild(a);
+        });
+
+        container.appendChild(list);
+      });
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
