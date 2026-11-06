@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor de Links</title>
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --card-bg: #ffffff;
+      --text: #1c1c1e;
+      --text-muted: #6b6b70;
+      --border: #e4e4e7;
+      --accent: #2d6cdf;
+      --accent-text: #ffffff;
+      --danger: #d9534f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px 16px 80px;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .warn {
+      background: #fff6e5;
+      border: 1px solid #f0d58c;
+      color: #7a5b00;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .warn a { color: #7a5b00; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .card h2 { font-size: 15px; margin: 0 0 14px; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 10px 0 4px;
+    }
+    input[type="text"], input[type="url"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .row { display: flex; gap: 10px; }
+    .row > div { flex: 1; min-width: 0; }
+    @media (max-width: 480px) {
+      .row { flex-direction: column; }
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .btn-primary { background: var(--accent); color: var(--accent-text); }
+    .btn-danger { background: #fdecea; color: var(--danger); }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-block { width: 100%; }
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .link-item:last-child { border-bottom: none; }
+    .link-item .meta { flex: 1; min-width: 140px; }
+    .link-item .title { font-weight: 600; font-size: 14px; }
+    .link-item .url { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+    .link-item .cat { font-size: 11px; color: var(--text-muted); }
+    .actions-col { display: flex; gap: 6px; flex-wrap: wrap; }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .msg {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      line-height: 1.5;
+    }
+    .msg-ok { background: #e8f7ea; border: 1px solid #a9dbb1; color: #1d6b2c; }
+    .msg-error { background: #fdecea; border: 1px solid #f3b6b0; color: #a32e26; }
+    .status-line {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .dot-on { background: #2fa84f; }
+    .dot-off { background: #bbb; }
+    fieldset { border: none; padding: 0; margin: 0; }
+    fieldset[disabled] { opacity: 0.5; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Editor de Links</h1>
+    <div class="warn">
+      Esta página edita direto o site publicado (<strong>Achadinhos da Ari</strong>).
+      Qualquer alteração salva aqui fica no ar em 1–2 minutos. Guarde o endereço
+      dela e não compartilhe sua chave de acesso com ninguém.
+    </div>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="card" id="connect-card">
+      <h2>Conexão com o GitHub</h2>
+      <div class="status-line" id="status-line">
+        <span class="dot dot-off" id="status-dot"></span><span id="status-text">Não conectado</span>
+      </div>
+      <label>Chave de acesso (Personal Access Token)</label>
+      <input type="password" id="token-input" placeholder="cole sua chave aqui" />
+      <div class="top-actions" style="margin-top: 12px;">
+        <button class="btn-primary" onclick="connect()">Conectar e carregar</button>
+        <button class="btn-secondary" onclick="forgetToken()">Esquecer chave</button>
+      </div>
+    </div>
+
+    <fieldset id="editor-fieldset" disabled>
+      <div class="card">
+        <h2>Perfil</h2>
+        <label>Nome</label>
+        <input type="text" id="p-name" />
+        <label>Bio / descrição curta</label>
+        <input type="text" id="p-bio" />
+        <label>Foto de perfil</label>
+        <input type="file" id="p-avatar-file" accept="image/*" />
+        <div class="status-line" id="avatar-status"></div>
+      </div>
+
+      <div class="card">
+        <h2 id="form-title">Adicionar novo link</h2>
+        <label>Título</label>
+        <input type="text" id="n-title" placeholder="Nome do produto ou loja" />
+        <div class="row">
+          <div>
+            <label>URL do link de afiliado</label>
+            <input type="url" id="n-url" placeholder="https://..." />
+          </div>
+          <div>
+            <label>Categoria (opcional, uso interno)</label>
+            <input type="text" id="n-category" placeholder="Ex: Beleza, Casa, Moda" />
+          </div>
+        </div>
+        <label>Ícone (um emoji, usado se não tiver imagem)</label>
+        <input type="text" id="n-icon" placeholder="🔗" />
+        <label>Foto do produto (opcional, substitui o ícone)</label>
+        <input type="file" id="n-image-file" accept="image/*" />
+        <div class="status-line" id="image-status"></div>
+        <div class="top-actions" style="margin-top: 14px;">
+          <button class="btn-primary" onclick="submitLinkForm()" id="submit-btn">Adicionar link</button>
+          <button class="btn-secondary" id="cancel-edit-btn" style="display:none;" onclick="cancelEdit()">Cancelar edição</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Links cadastrados</h2>
+        <div id="links-list"></div>
+      </div>
+
+      <button class="btn-primary btn-block" onclick="saveToGitHub()">Salvar no site</button>
+    </fieldset>
+  </div>
+
+  <script>
+    const OWNER = "Arii19";
+    const REPO = "GerenciadorLink";
+    const BRANCH = "main";
+    const DATA_PATH = "data.json";
+    const TOKEN_KEY = "gh_pat_gerenciadorlink";
+
+    let data = { profile: { name: "", bio: "", avatar: "" }, links: [] };
+    let currentSha = null;
+    let editIndex = null;
+    let pendingAvatarFile = null;
+    let pendingImageFile = null;
+
+    function getToken() {
+      return localStorage.getItem(TOKEN_KEY) || "";
+    }
+
+    function setStatus(connected) {
+      document.getElementById("status-dot").className = "dot " + (connected ? "dot-on" : "dot-off");
+      document.getElementById("status-text").textContent = connected
+        ? "Conectado — pronto para editar"
+        : "Não conectado";
+      document.getElementById("editor-fieldset").disabled = !connected;
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById("msg");
+      el.textContent = text;
+      el.className = "msg " + (type === "error" ? "msg-error" : "msg-ok");
+      el.style.display = "block";
+    }
+
+    function hideMsg() {
+      document.getElementById("msg").style.display = "none";
+    }
+
+    function authHeaders(token) {
+      const h = { Accept: "application/vnd.github+json" };
+      if (token) h.Authorization = "token " + token;
+      return h;
+    }
+
+    function b64DecodeUnicode(str) {
+      return decodeURIComponent(
+        atob(str.replace(/\n/g, ""))
+          .split("")
+          .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+          .join("")
+      );
+    }
+
+    function b64EncodeUnicode(str) {
+      return btoa(
+        encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode("0x" + p1))
+      );
+    }
+
+    async function connect() {
+      const token = document.getElementById("token-input").value.trim();
+      if (!token) {
+        showMsg("Cole sua chave de acesso antes de conectar.", "error");
+        return;
+      }
+      localStorage.setItem(TOKEN_KEY, token);
+      document.getElementById("token-input").value = "";
+      await loadFromGitHub();
+    }
+
+    function forgetToken() {
+      localStorage.removeItem(TOKEN_KEY);
+      setStatus(false);
+      showMsg("Chave removida deste aparelho.", "ok");
+    }
+
+    async function loadFromGitHub() {
+      hideMsg();
+      const token = getToken();
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DATA_PATH}?ref=${BRANCH}&t=${Date.now()}`,
+          { headers: authHeaders(token) }
+        );
+        if (res.status === 401) {
+          setStatus(false);
+          showMsg("Chave inválida ou expirada. Gere uma nova e conecte de novo.", "error");
+          return;
+        }
+        if (!res.ok) {
+          setStatus(false);
+          showMsg("Não consegui carregar os dados (erro " + res.status + ").", "error");
+          return;
+        }
+        const json = await res.json();
+        currentSha = json.sha;
+        const parsed = JSON.parse(b64DecodeUnicode(json.content));
+        data = {
+          profile: parsed.profile || { name: "", bio: "", avatar: "" },
+          links: parsed.links || [],
+        };
+        renderProfileForm();
+        renderLinksList();
+        setStatus(!!token);
+        if (token) showMsg("Dados carregados. Pode editar.", "ok");
+      } catch (err) {
+        console.error(err);
+        showMsg("Erro ao carregar: " + err.message, "error");
+      }
+    }
+
+    function renderProfileForm() {
+      document.getElementById("p-name").value = data.profile.name || "";
+      document.getElementById("p-bio").value = data.profile.bio || "";
+    }
+
+    function renderLinksList() {
+      const list = document.getElementById("links-list");
+      list.innerHTML = "";
+      if (!data.links.length) {
+        list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhum link ainda.</p>';
+        return;
+      }
+      data.links.forEach((link, index) => {
+        const row = document.createElement("div");
+        row.className = "link-item";
+        const thumb = link.image
+          ? `<img src="${escapeHtml(link.image)}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;" />`
+          : `<span style="font-size:20px;flex-shrink:0;">${link.icon || "🔗"}</span>`;
+        row.innerHTML = `
+          ${thumb}
+          <div class="meta">
+            <div class="title">${escapeHtml(link.title)}</div>
+            <div class="url">${escapeHtml(link.url)}</div>
+            <div class="cat">${escapeHtml(link.category || "Geral")}</div>
+          </div>
+          <div class="actions-col">
+            <button class="btn-secondary" data-action="edit" data-index="${index}">Editar</button>
+            <button class="btn-secondary" data-action="up" data-index="${index}">↑</button>
+            <button class="btn-secondary" data-action="down" data-index="${index}">↓</button>
+            <button class="btn-danger" data-action="remove" data-index="${index}">Remover</button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById("links-list").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      const index = parseInt(btn.dataset.index, 10);
+      const action = btn.dataset.action;
+      if (action === "remove") {
+        if (confirm("Remover este link?")) {
+          data.links.splice(index, 1);
+          if (editIndex === index) cancelEdit();
+          renderLinksList();
+        }
+      } else if (action === "up" && index > 0) {
+        [data.links[index - 1], data.links[index]] = [data.links[index], data.links[index - 1]];
+        renderLinksList();
+      } else if (action === "down" && index < data.links.length - 1) {
+        [data.links[index + 1], data.links[index]] = [data.links[index], data.links[index + 1]];
+        renderLinksList();
+      } else if (action === "edit") {
+        startEdit(index);
+      }
+    });
+
+    function startEdit(index) {
+      editIndex = index;
+      const link = data.links[index];
+      document.getElementById("n-title").value = link.title || "";
+      document.getElementById("n-url").value = link.url || "";
+      document.getElementById("n-category").value = link.category || "";
+      document.getElementById("n-icon").value = link.icon || "";
+      document.getElementById("n-image-file").value = "";
+      pendingImageFile = null;
+      document.getElementById("image-status").textContent = link.image ? "Já tem uma foto (escolha outra para trocar)." : "";
+      document.getElementById("form-title").textContent = "Editar link";
+      document.getElementById("submit-btn").textContent = "Salvar alterações";
+      document.getElementById("cancel-edit-btn").style.display = "inline-block";
+      window.scrollTo({ top: document.getElementById("form-title").offsetTop - 20, behavior: "smooth" });
+    }
+
+    function cancelEdit() {
+      editIndex = null;
+      document.getElementById("n-title").value = "";
+      document.getElementById("n-url").value = "";
+      document.getElementById("n-category").value = "";
+      document.getElementById("n-icon").value = "";
+      document.getElementById("n-image-file").value = "";
+      document.getElementById("image-status").textContent = "";
+      pendingImageFile = null;
+      document.getElementById("form-title").textContent = "Adicionar novo link";
+      document.getElementById("submit-btn").textContent = "Adicionar link";
+      document.getElementById("cancel-edit-btn").style.display = "none";
+    }
+
+    document.getElementById("n-image-file").addEventListener("change", (e) => {
+      pendingImageFile = e.target.files[0] || null;
+      document.getElementById("image-status").textContent = pendingImageFile
+        ? "Foto selecionada: " + pendingImageFile.name + " (envia ao salvar)"
+        : "";
+    });
+
+    document.getElementById("p-avatar-file").addEventListener("change", (e) => {
+      pendingAvatarFile = e.target.files[0] || null;
+      document.getElementById("avatar-status").textContent = pendingAvatarFile
+        ? "Foto selecionada: " + pendingAvatarFile.name + " (envia ao salvar)"
+        : "";
+    });
+
+    async function submitLinkForm() {
+      const title = document.getElementById("n-title").value.trim();
+      const url = document.getElementById("n-url").value.trim();
+      const category = document.getElementById("n-category").value.trim() || "Geral";
+      const icon = document.getElementById("n-icon").value.trim() || "🔗";
+
+      if (!title || !url) {
+        alert("Preencha pelo menos o título e a URL.");
+        return;
+      }
+      try {
+        new URL(url);
+      } catch {
+        alert("Essa URL não parece válida. Confira se começa com https://");
+        return;
+      }
+
+      let imagePath = editIndex !== null ? data.links[editIndex].image : undefined;
+
+      if (pendingImageFile) {
+        const btn = document.getElementById("submit-btn");
+        btn.disabled = true;
+        btn.textContent = "Enviando foto...";
+        try {
+          imagePath = await uploadImageFile(pendingImageFile, title);
+        } catch (err) {
+          alert("Não consegui enviar a foto: " + err.message);
+          btn.disabled = false;
+          btn.textContent = editIndex !== null ? "Salvar alterações" : "Adicionar link";
+          return;
+        }
+        btn.disabled = false;
+      }
+
+      const entry = {
+        id: editIndex !== null ? data.links[editIndex].id : "link-" + Date.now(),
+        title,
+        url,
+        category,
+        icon,
+        ...(imagePath ? { image: imagePath } : {}),
+      };
+
+      if (editIndex !== null) {
+        data.links[editIndex] = entry;
+      } else {
+        data.links.push(entry);
+      }
+
+      cancelEdit();
+      renderLinksList();
+      showMsg('Link pronto. Clique em "Salvar no site" para publicar.', "ok");
+    }
+
+    function slugify(str) {
+      return (str || "produto")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")
+        .slice(0, 40) || "produto";
+    }
+
+    function fileExt(file) {
+      const parts = file.name.split(".");
+      return parts.length > 1 ? parts.pop().toLowerCase() : "jpg";
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadImageFile(file, titleForName) {
+      const token = getToken();
+      if (!token) throw new Error("não conectado");
+      const path = `images/${slugify(titleForName)}-${Date.now()}.${fileExt(file)}`;
+      const base64 = await readFileAsBase64(file);
+      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+        method: "PUT",
+        headers: { ...authHeaders(token), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Adiciona imagem: " + titleForName,
+          content: base64,
+          branch: BRANCH,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "erro " + res.status);
+      }
+      return path;
+    }
+
+    async function uploadAvatarIfNeeded() {
+      if (!pendingAvatarFile) return;
+      const token = getToken();
+      const path = "images/avatar.jpg";
+      const base64 = await readFileAsBase64(pendingAvatarFile);
+
+      let sha;
+      const existing = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`,
+        { headers: authHeaders(token) }
+      );
+      if (existing.ok) {
+        const json = await existing.json();
+        sha = json.sha;
+      }
+
+      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+        method: "PUT",
+        headers: { ...authHeaders(token), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Atualiza foto de perfil",
+          content: base64,
+          branch: BRANCH,
+          ...(sha ? { sha } : {}),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "erro " + res.status);
+      }
+      data.profile.avatar = path;
+      pendingAvatarFile = null;
+      document.getElementById("p-avatar-file").value = "";
+      document.getElementById("avatar-status").textContent = "Foto atualizada.";
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str || "";
+      return div.innerHTML;
+    }
+
+    async function saveToGitHub() {
+      const token = getToken();
+      if (!token) {
+        showMsg("Conecte sua chave de acesso primeiro.", "error");
+        return;
+      }
+      hideMsg();
+      const saveBtn = event.target;
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Salvando...";
+
+      try {
+        await uploadAvatarIfNeeded();
+
+        data.profile.name = document.getElementById("p-name").value.trim();
+        data.profile.bio = document.getElementById("p-bio").value.trim();
+
+        const content = JSON.stringify(data, null, 2);
+        const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${DATA_PATH}`, {
+          method: "PUT",
+          headers: { ...authHeaders(token), "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: "Atualiza links (via editor)",
+            content: b64EncodeUnicode(content),
+            sha: currentSha,
+            branch: BRANCH,
+          }),
+        });
+
+        if (res.status === 409) {
+          showMsg("Alguém (ou você em outro aparelho) salvou antes. Recarreguei os dados mais recentes — confira e salve de novo.", "error");
+          await loadFromGitHub();
+          return;
+        }
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message || "erro " + res.status);
+        }
+        const json = await res.json();
+        currentSha = json.content.sha;
+        showMsg("Salvo! O site atualiza em 1–2 minutos.", "ok");
+      } catch (err) {
+        console.error(err);
+        showMsg("Erro ao salvar: " + err.message, "error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Salvar no site";
+      }
+    }
+
+    (function init() {
+      const token = getToken();
+      setStatus(!!token);
+      loadFromGitHub();
+    })();
+  </script>
+</body>
+</html>
